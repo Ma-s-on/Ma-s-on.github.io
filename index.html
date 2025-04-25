@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mason | Terminal-Native DevOps Engineer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP and ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- Three.js for 3D animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    
+    <!-- Custom fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom styles -->
+    <style>
+        :root {
+            --primary: #FF3333;
+            --secondary: #1A1A1A;
+            --dark: #0A0A0A;
+            --gray: #333333;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark);
+            color: #fff;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(45deg, var(--primary), #FF6666);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
+        }
+        
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(var(--dark), var(--dark)) padding-box,
+                        linear-gradient(45deg, var(--primary), #FF6666) border-box;
+            border: 2px solid transparent;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gradient-border:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 51, 51, 0.2);
+        }
+
+        .terminal-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .logo-container:hover {
+            transform: rotateY(180deg);
+        }
+
+        .logo-square {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--primary);
+            transform-origin: center;
+            animation: rotateLogo 10s linear infinite;
+            backface-visibility: hidden;
+        }
+
+        .logo-square:nth-child(2) {
+            animation-delay: -2.5s;
+            transform: translateZ(-10px);
+        }
+
+        .logo-square:nth-child(3) {
+            animation-delay: -5s;
+            transform: translateZ(-20px);
+        }
+
+        .logo-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.2rem;
+            z-index: 2;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+        }
+
+        @keyframes rotateLogo {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .glitch {
+            position: relative;
+            animation: glitch 5s infinite;
+            text-shadow: 
+                0 0 10px rgba(255, 51, 51, 0.5),
+                2px 2px 0px rgba(255, 51, 51, 0.3);
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) skew(0deg); }
+            20% { transform: translate(-2px, 2px) skew(2deg); }
+            40% { transform: translate(-2px, -2px) skew(-2deg); }
+            60% { transform: translate(2px, 2px) skew(-1deg); }
+            80% { transform: translate(2px, -2px) skew(1deg); }
+            100% { transform: translate(0) skew(0deg); }
+        }
+
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-15px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 
+                0 20px 40px rgba(255, 51, 51, 0.2),
+                0 0 20px rgba(255, 51, 51, 0.1);
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0) rotateX(0) rotateY(0); 
+            }
+            50% { 
+                transform: translateY(-20px) rotateX(5deg) rotateY(5deg); 
+            }
+        }
+
+        .terminal-cursor::after {
+            content: '█';
+            animation: cursor 1s infinite;
+            margin-left: 2px;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+        }
+
+        @keyframes cursor {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .skill-icon {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .skill-icon:hover {
+            transform: scale(1.2) translateZ(20px) rotateX(10deg) rotateY(10deg);
+            filter: drop-shadow(0 0 10px rgba(255, 51, 51, 0.5));
+        }
+
+        .typing-effect {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .typing-effect.visible {
+            opacity: 1;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 51, 51, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 51, 51, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            transform-style: preserve-3d;
+            transform: perspective(1000px) rotateX(60deg) scale(2);
+            opacity: 0.2;
+        }
+
+        .terminal-window {
+            transform-style: preserve-3d;
+            transition: all 0.4s ease;
+            background: var(--dark);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .terminal-window:hover {
+            transform: translateY(-5px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 
+                0 20px 40px rgba(255, 51, 51, 0.2),
+                0 0 20px rgba(255, 51, 51, 0.1);
+        }
+
+        .terminal-header {
+            background: var(--secondary);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-body {
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #fff;
+        }
+
+        .terminal-line {
+            display: flex;
+            margin-bottom: 8px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .terminal-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .terminal-prompt {
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .terminal-output {
+            color: #fff;
+            padding-left: 8px;
+        }
+
+        .terminal-cursor-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .terminal-cursor-line .terminal-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background-color: var(--primary);
+            animation: blink 1s infinite;
+            margin-left: 4px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF6666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle effect container -->
+    <div id="particles-js"></div>
+    
+    <!-- 3D Grid Background -->
+    <div class="grid-background"></div>
+
+    <!-- Main content wrapper -->
+    <div class="content">
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 bg-[#0A0A0A]/90 backdrop-blur-lg border-b border-[#FF3333]/20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center space-x-3">
+                        <div class="logo-container">
+                            <div class="logo-square"></div>
+                            <div class="logo-square"></div>
+                            <div class="logo-square"></div>
+                            <span class="logo-text">M</span>
+                        </div>
+                        <a href="#" class="text-xl font-bold gradient-text terminal-font">Mason</a>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-8">
+                            <a href="#about" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium terminal-font">&gt; About</a>
+                            <a href="#projects" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium terminal-font">&gt; Projects</a>
+                            <a href="#skills" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium terminal-font">&gt; Skills</a>
+                            <a href="#contact" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium terminal-font">&gt; Contact</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="min-h-screen flex items-center justify-center relative overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute inset-0 bg-gradient-to-b from-[#FF3333]/5 via-[#1A1A1A]/10 to-transparent"></div>
+                <!-- Animated background elements -->
+                <div class="absolute inset-0 overflow-hidden">
+                    <div class="absolute w-full h-full">
+                        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-[#FF3333]/5 rounded-full filter blur-3xl animate-float"></div>
+                        <div class="absolute top-3/4 right-1/4 w-96 h-96 bg-[#333333]/5 rounded-full filter blur-3xl" style="animation: float 8s ease-in-out infinite;"></div>
+                    </div>
+                </div>
+                <!-- Grid overlay -->
+                <div class="absolute inset-0" style="background-image: linear-gradient(#FF333310 1px, transparent 1px), linear-gradient(90deg, #FF333310 1px, transparent 1px); background-size: 50px 50px;"></div>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center">
+                    <div class="inline-block mb-4">
+                        <div class="terminal-font text-[#FF3333] text-left mb-4">
+                            <span class="terminal-cursor">$ whoami</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-bold mb-6 terminal-font">
+                        <span class="glitch gradient-text">Terminal-Native</span>
+                        <br>
+                        <span class="text-white">DevOps Engineer</span>
+                    </h1>
+                    <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto terminal-font">
+                        <span class="text-[#FF3333]">&gt;</span> Crafting elegant CLI tools and cybersecurity automations. Building the future of DevOps one script at a time.
+                    </p>
+                    <div class="flex justify-center gap-6">
+                        <a href="#projects" class="gradient-border px-8 py-4 rounded-lg font-medium hover:scale-105 transition-transform terminal-font group">
+                            <span class="text-[#FF3333]">&gt;</span> View Projects
+                            <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+                        </a>
+                        <a href="https://github.com/Ma-s-on" target="_blank" class="bg-[#1A1A1A] border border-[#333333] px-8 py-4 rounded-lg font-medium hover:bg-[#333333] transition-colors terminal-font group">
+                            <span class="text-[#FF3333]">&gt;</span> GitHub Profile
+                            <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Animated scroll indicator -->
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2">
+                <div class="w-6 h-10 border-2 border-[#FF3333] rounded-full p-1">
+                    <div class="w-1.5 h-1.5 bg-[#FF3333] rounded-full animate-bounce mx-auto"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 bg-[#1A1A1A]/30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold mb-6 terminal-font">
+                            <span class="text-[#FF3333]">&gt;</span> About Me
+                        </h2>
+                        <div class="space-y-4 text-gray-300">
+                            <p class="terminal-font">I'm Mason, a DevOps engineer and cybersecurity enthusiast with a passion for building elegant CLI tools and well-structured Linux systems.</p>
+                            <p class="terminal-font text-[#FF3333]">$ cat current_focus.txt</p>
+                            <ul class="list-none space-y-2 ml-4 terminal-font">
+                                <li class="flex items-center space-x-2">
+                                    <span class="text-[#FF3333]">→</span>
+                                    <span>Building DevOps tools that simplify complex tasks</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <span class="text-[#FF3333]">→</span>
+                                    <span>Developing cybersecurity automations for detection & response</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <span class="text-[#FF3333]">→</span>
+                                    <span>Experimenting with system-level Python + shell integration</span>
+                                </li>
+                            </ul>
+                            <p class="mt-6 text-[#FF3333] italic terminal-font"># Ship fast. Break nothing. Automate everything.</p>
+                        </div>
+                        <div class="mt-8 flex gap-4">
+                            <a href="https://github.com/Ma-s-on" target="_blank" class="gradient-border px-6 py-3 rounded-lg font-medium hover:scale-105 transition-transform inline-flex items-center gap-2 terminal-font group">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-[#FF3333]">&gt;</span> Follow on GitHub
+                                <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-[#FF3333]/10 to-[#333333]/10 rounded-lg filter blur-3xl"></div>
+                        <div class="relative bg-[#1A1A1A] p-6 rounded-lg border border-[#FF3333]/20">
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-3 h-3 rounded-full bg-[#FF3333]"></div>
+                                    <div class="w-3 h-3 rounded-full bg-[#FF6666]"></div>
+                                    <div class="w-3 h-3 rounded-full bg-[#333333]"></div>
+                                </div>
+                                <div class="terminal-window">
+                                    <div class="terminal-header">
+                                        <div class="w-3 h-3 rounded-full bg-[#FF3333]"></div>
+                                        <div class="w-3 h-3 rounded-full bg-[#FF6666]"></div>
+                                        <div class="w-3 h-3 rounded-full bg-[#333333]"></div>
+                                    </div>
+                                    <div class="terminal-body">
+                                        <div class="terminal-line" data-delay="0">
+                                            <span class="terminal-prompt">$</span>
+                                            <span class="terminal-command">whoami</span>
+                                        </div>
+                                        <div class="terminal-line" data-delay="400">
+                                            <span class="terminal-output">mason</span>
+                                        </div>
+                                        
+                                        <div class="terminal-line" data-delay="800">
+                                            <span class="terminal-prompt">$</span>
+                                            <span class="terminal-command">cat /etc/interests</span>
+                                        </div>
+                                        <div class="terminal-line" data-delay="1200">
+                                            <div class="terminal-output">
+                                                • CLI tools & automation
+                                                • System architecture
+                                                • Cybersecurity
+                                                • Open source
+                                            </div>
+                                        </div>
+
+                                        <div class="terminal-line" data-delay="1600">
+                                            <span class="terminal-prompt">$</span>
+                                            <span class="terminal-command">echo $DREAM</span>
+                                        </div>
+                                        <div class="terminal-line" data-delay="2000">
+                                            <span class="terminal-output">"Writing a custom OS kernel"</span>
+                                        </div>
+
+                                        <div class="terminal-line" data-delay="2400">
+                                            <span class="terminal-prompt">$</span>
+                                            <span class="terminal-command">uptime</span>
+                                        </div>
+                                        <div class="terminal-line" data-delay="2800">
+                                            <span class="terminal-output">Coding since: ∞</span>
+                                        </div>
+                                        
+                                        <div class="terminal-line terminal-cursor-line" data-delay="3200">
+                                            <span class="terminal-prompt">$</span>
+                                            <span class="terminal-cursor"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold mb-12 text-center terminal-font">
+                    <span class="text-[#FF3333]">&gt;</span> Featured Projects
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Project Card 1 -->
+                    <div class="card-hover gradient-border rounded-xl p-6">
+                        <div class="aspect-w-16 aspect-h-9 mb-4">
+                            <div class="w-full h-48 bg-gradient-to-r from-[#FF3333]/10 to-[#1A1A1A] rounded-lg flex items-center justify-center relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-[#1A1A1A] opacity-80"></div>
+                                <svg class="w-16 h-16 text-[#FF3333] relative z-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent"></div>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 terminal-font">DevOps Automation Suite</h3>
+                        <p class="text-gray-400 mb-4 terminal-font">A collection of Python-based CLI tools for automating common DevOps tasks and system administration.</p>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">Python</span>
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">Shell</span>
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">Linux</span>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 2 -->
+                    <div class="card-hover gradient-border rounded-xl p-6">
+                        <div class="aspect-w-16 aspect-h-9 mb-4">
+                            <div class="w-full h-48 bg-gradient-to-r from-[#FF3333]/10 to-[#1A1A1A] rounded-lg flex items-center justify-center relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-[#1A1A1A] opacity-80"></div>
+                                <svg class="w-16 h-16 text-[#FF3333] relative z-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent"></div>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 terminal-font">Security Response Framework</h3>
+                        <p class="text-gray-400 mb-4 terminal-font">Automated incident detection and response system with real-time monitoring and alerting capabilities.</p>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">C++</span>
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">Qt</span>
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">SQLite</span>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 3 -->
+                    <div class="card-hover gradient-border rounded-xl p-6">
+                        <div class="aspect-w-16 aspect-h-9 mb-4">
+                            <div class="w-full h-48 bg-gradient-to-r from-[#FF3333]/10 to-[#1A1A1A] rounded-lg flex items-center justify-center relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-[#1A1A1A] opacity-80"></div>
+                                <svg class="w-16 h-16 text-[#FF3333] relative z-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                                </svg>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent"></div>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 terminal-font">Custom Kernel Module</h3>
+                        <p class="text-gray-400 mb-4 terminal-font">Experimental Linux kernel module for enhanced system monitoring and security features.</p>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">C</span>
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">Linux</span>
+                            <span class="px-3 py-1 bg-[#1A1A1A] border border-[#FF3333]/20 rounded-full text-sm terminal-font">Assembly</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20 bg-white/5">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold mb-12 text-center">Toolbox of Choice</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
+                    <!-- Python -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">Python</h3>
+                    </div>
+                    
+                    <!-- C++ -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="C++" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">C++</h3>
+                    </div>
+                    
+                    <!-- Qt -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/qt/qt-original.svg" alt="Qt" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">Qt</h3>
+                    </div>
+                    
+                    <!-- Git -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/git/git-original.svg" alt="Git" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">Git</h3>
+                    </div>
+                    
+                    <!-- Linux -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/linux/linux-original.svg" alt="Linux" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">Linux</h3>
+                    </div>
+                    
+                    <!-- Vim -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/vim/vim-original.svg" alt="Vim" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">Vim</h3>
+                    </div>
+                    
+                    <!-- SQLite -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/sqlite/sqlite-original.svg" alt="SQLite" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">SQLite</h3>
+                    </div>
+                    
+                    <!-- Ubuntu -->
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-white/10 rounded-xl hover:scale-110 transition-transform">
+                            <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/ubuntu/ubuntu-plain.svg" alt="Ubuntu" class="w-12 h-12">
+                        </div>
+                        <h3 class="font-medium">Ubuntu</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold mb-12 text-center">Let's Connect</h2>
+                <div class="max-w-3xl mx-auto text-center mb-12">
+                    <p class="text-gray-400">Interested in collaborating on DevOps tools, security projects, or just want to chat about system architecture? I'd love to hear from you!</p>
+                </div>
+                <div class="flex justify-center space-x-6">
+                    <a href="https://github.com/Ma-s-on" target="_blank" class="gradient-border px-6 py-3 rounded-lg font-medium hover:scale-105 transition-transform inline-flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+                        </svg>
+                        GitHub Profile
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-8 border-t border-white/10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <p class="text-gray-400 text-center">"Ship fast. Break nothing. Automate everything."</p>
+                    <p class="text-gray-400">&copy; 2024 Mason. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Animation Script -->
+    <script>
+        // Initialize GSAP ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Terminal typing animation
+        function typeWriter(element, text, speed = 50) {
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        // Animate elements on page load
+        window.addEventListener('load', () => {
+            // Terminal cursor animation for hero section
+            const cursor = document.querySelector('.terminal-cursor');
+            typeWriter(cursor, '$ whoami');
+
+            // Hero section animations
+            gsap.from('h1', {
+                duration: 1,
+                y: 50,
+                opacity: 0,
+                ease: 'power4.out',
+                delay: 0.5
+            });
+
+            gsap.from('.hero-text', {
+                duration: 1,
+                y: 30,
+                opacity: 0,
+                delay: 1,
+                ease: 'power4.out'
+            });
+
+            // Animate rotating logo
+            gsap.to('.logo-square', {
+                rotation: 360,
+                duration: 20,
+                repeat: -1,
+                ease: 'none'
+            });
+
+            // Animate project cards on scroll
+            gsap.utils.toArray('.card-hover').forEach((card, i) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top bottom-=100',
+                        toggleActions: 'play none none reverse'
+                    },
+                    y: 100,
+                    opacity: 0,
+                    duration: 1,
+                    delay: i * 0.2,
+                    ease: 'power4.out'
+                });
+            });
+
+            // Animate skill icons
+            gsap.utils.toArray('#skills .grid > div').forEach((skill, i) => {
+                gsap.from(skill, {
+                    scrollTrigger: {
+                        trigger: skill,
+                        start: 'top bottom-=100',
+                        toggleActions: 'play none none reverse'
+                    },
+                    scale: 0.5,
+                    opacity: 0,
+                    duration: 0.5,
+                    delay: i * 0.1,
+                    ease: 'back.out(1.7)'
+                });
+            });
+
+            // Terminal typing effect for about section
+            const terminalCode = document.querySelector('.typing-effect');
+            ScrollTrigger.create({
+                trigger: terminalCode,
+                start: 'top center',
+                onEnter: () => {
+                    terminalCode.style.opacity = '1';
+                    const lines = terminalCode.innerHTML.split('\n');
+                    let delay = 0;
+                    lines.forEach((line, i) => {
+                        setTimeout(() => {
+                            const span = document.createElement('span');
+                            span.innerHTML = line;
+                            terminalCode.appendChild(span);
+                        }, delay);
+                        delay += 100;
+                    });
+                }
+            });
+        });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Terminal animation
+        function initializeTerminal() {
+            const terminalLines = document.querySelectorAll('.terminal-line');
+            
+            terminalLines.forEach(line => {
+                const delay = parseInt(line.getAttribute('data-delay'));
+                setTimeout(() => {
+                    line.classList.add('visible');
+                    
+                    // If line contains a command, animate it
+                    const command = line.querySelector('.terminal-command');
+                    if (command) {
+                        const text = command.textContent;
+                        command.textContent = '';
+                        let i = 0;
+                        
+                        function typeLetter() {
+                            if (i < text.length) {
+                                command.textContent += text[i];
+                                i++;
+                                setTimeout(typeLetter, 50);
+                            }
+                        }
+                        
+                        typeLetter();
+                    }
+                }, delay);
+            });
+        }
+
+        // Initialize terminal when it comes into view
+        const terminalWindow = document.querySelector('.terminal-window');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    initializeTerminal();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        observer.observe(terminalWindow);
+    </script>
+</body>
+</html>
