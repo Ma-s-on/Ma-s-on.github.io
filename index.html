@@ -34,7 +34,10 @@
             background-color: var(--dark);
             color: #fff;
             overflow-x: hidden;
-            perspective: 1000px;
+            /* Firefox compatibility fixes */
+            min-height: 100vh;
+            height: auto;
+            position: relative;
         }
         
         .gradient-text {
@@ -237,9 +240,10 @@
                 linear-gradient(90deg, rgba(255, 51, 51, 0.1) 1px, transparent 1px);
             background-size: 50px 50px;
             z-index: -1;
-            transform-style: preserve-3d;
-            transform: perspective(1000px) rotateX(60deg) scale(2);
             opacity: 0.2;
+            /* Firefox compatibility - removed 3D transforms */
+            will-change: opacity;
+            contain: layout style paint;
         }
 
         .terminal-window {

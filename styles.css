@@ -764,7 +764,7 @@
     }
 }
 
-/* Grid Background Enhancement */
+/* Grid Background Enhancement - Firefox Compatible */
 .grid-background {
     position: fixed;
     top: 0;
@@ -778,20 +778,21 @@
         linear-gradient(90deg, rgba(255, 51, 51, 0.05) 1px, transparent 1px);
     background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
     z-index: -1;
-    transform-style: preserve-3d;
-    transform: perspective(1000px) rotateX(45deg) scale(1.5);
     opacity: 0.3;
     animation: grid-pulse 6s ease-in-out infinite;
+    /* Firefox compatibility fixes */
+    will-change: opacity;
+    contain: layout style paint;
 }
 
 @keyframes grid-pulse {
     0%, 100% { 
-        opacity: 0.3; 
-        transform: perspective(1000px) rotateX(45deg) scale(1.5);
+        opacity: 0.2; 
+        filter: brightness(1);
     }
     50% { 
-        opacity: 0.5; 
-        transform: perspective(1000px) rotateX(60deg) scale(1.7);
+        opacity: 0.4; 
+        filter: brightness(1.3);
     }
 }
 

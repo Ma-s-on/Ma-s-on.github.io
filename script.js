@@ -4,83 +4,141 @@ gsap.registerPlugin(ScrollTrigger);
 // Advanced 3D Scene Setup
 let scene, camera, renderer, particles, mouseX = 0, mouseY = 0;
 
-// Initialize Three.js Scene
+// Initialize Three.js Scene with Browser Compatibility
 const initThreeJS = () => {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 0);
+    // Check if Three.js is available
+    if (typeof THREE === 'undefined') {
+        console.warn('Three.js not loaded, using fallback particle system');
+        initFallbackParticles();
+        return;
+    }
     
-    // Create particle system
-    const geometry = new THREE.BufferGeometry();
-    const vertices = [];
-    const colors = [];
-    
-    for (let i = 0; i < 5000; i++) {
-        vertices.push(
-            Math.random() * 2000 - 1000,
-            Math.random() * 2000 - 1000,
-            Math.random() * 2000 - 1000
-        );
+    try {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ 
+            alpha: true, 
+            antialias: true,
+            powerPreference: "high-performance",
+            failIfMajorPerformanceCaveat: false
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
         
-        // Red color variations
-        colors.push(1, Math.random() * 0.5 + 0.2, Math.random() * 0.3);
+        // Create particle system
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const colors = [];
+        
+        // Reduced particle count for better performance
+        for (let i = 0; i < 1500; i++) {
+            vertices.push(
+                Math.random() * 2000 - 1000,
+                Math.random() * 2000 - 1000,
+                Math.random() * 2000 - 1000
+            );
+            
+            // Red color variations
+            colors.push(1, Math.random() * 0.5 + 0.2, Math.random() * 0.3);
+        }
+        
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        
+        const material = new THREE.PointsMaterial({
+            size: 2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        
+        particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+        
+        camera.position.z = 500;
+        
+        const particleContainer = document.getElementById('particles-js');
+        if (particleContainer) {
+            particleContainer.appendChild(renderer.domElement);
+            renderer.domElement.style.width = '100%';
+            renderer.domElement.style.height = '100%';
+        }
+        
+        animate3D();
+    } catch (error) {
+        console.warn('WebGL not supported, using fallback particle system');
+        initFallbackParticles();
     }
-    
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    
-    const material = new THREE.PointsMaterial({
-        size: 2,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending
-    });
-    
-    particles = new THREE.Points(geometry, material);
-    scene.add(particles);
-    
-    camera.position.z = 500;
-    
-    const hero = document.querySelector('section');
-    if (hero) {
-        hero.style.position = 'relative';
-        renderer.domElement.style.position = 'absolute';
-        renderer.domElement.style.top = '0';
-        renderer.domElement.style.left = '0';
-        renderer.domElement.style.zIndex = '0';
-        renderer.domElement.style.pointerEvents = 'none';
-        hero.insertBefore(renderer.domElement, hero.firstChild);
-    }
-    
-    animate3D();
 };
 
 // 3D Animation Loop
 const animate3D = () => {
+    if (!renderer || !scene || !camera) return;
     requestAnimationFrame(animate3D);
     
     // Mouse interaction
     const targetX = mouseX * 0.001;
     const targetY = mouseY * 0.001;
     
-    particles.rotation.x += (targetY - particles.rotation.x) * 0.05;
-    particles.rotation.y += (targetX - particles.rotation.y) * 0.05;
-    
-    // Continuous rotation
-    particles.rotation.z += 0.0005;
-    
-    // Breathing effect
-    const scale = 1 + Math.sin(Date.now() * 0.001) * 0.1;
-    particles.scale.set(scale, scale, scale);
+    if (particles) {
+        particles.rotation.x += (targetY - particles.rotation.x) * 0.05;
+        particles.rotation.y += (targetX - particles.rotation.y) * 0.05;
+        
+        // Continuous rotation
+        particles.rotation.z += 0.0005;
+        
+        // Breathing effect
+        const scale = 1 + Math.sin(Date.now() * 0.001) * 0.1;
+        particles.scale.set(scale, scale, scale);
+    }
     
     camera.position.x += (mouseX * 0.01 - camera.position.x) * 0.05;
     camera.position.y += (-mouseY * 0.01 - camera.position.y) * 0.05;
     camera.lookAt(scene.position);
     
     renderer.render(scene, camera);
+};
+
+// Fallback CSS-based particle system
+const initFallbackParticles = () => {
+    const particleContainer = document.getElementById('particles-js');
+    if (!particleContainer) return;
+    
+    // Create CSS-based particles
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'css-particle';
+        particle.style.cssText = `
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #FF3333;
+            border-radius: 50%;
+            opacity: ${Math.random() * 0.8 + 0.2};
+            left: ${Math.random() * 100}%;
+            top: ${Math.random() * 100}%;
+            animation: float-particle ${Math.random() * 10 + 5}s linear infinite;
+            animation-delay: ${Math.random() * 5}s;
+        `;
+        particleContainer.appendChild(particle);
+    }
+    
+    // Add CSS animation for fallback particles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) translateX(0px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(${Math.random() * 200 - 100}px); opacity: 0; }
+        }
+        .css-particle {
+            pointer-events: none;
+            z-index: 1;
+        }
+    `;
+    document.head.appendChild(style);
 };
 
 // Matrix Rain Effect
@@ -107,7 +165,7 @@ const createMatrixRain = () => {
     setInterval(createRainDrop, 300);
 };
 
-// Enhanced Loading Screen
+// Enhanced Loading Screen with Firefox compatibility
 const createLoadingScreen = () => {
     const loadingScreen = document.createElement('div');
     loadingScreen.className = 'loading-screen';
@@ -120,19 +178,45 @@ const createLoadingScreen = () => {
     `;
     document.body.appendChild(loadingScreen);
     
-    // Animate loading screen out
-    setTimeout(() => {
-        gsap.to(loadingScreen, {
-            opacity: 0,
-            scale: 0.8,
-            duration: 1,
-            ease: 'power4.inOut',
-            onComplete: () => {
+    // Check if all scripts are loaded before removing loading screen
+    const checkScriptsLoaded = () => {
+        const scriptsLoaded = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+        return scriptsLoaded;
+    };
+    
+    const removeLoadingScreen = () => {
+        if (typeof gsap !== 'undefined') {
+            gsap.to(loadingScreen, {
+                opacity: 0,
+                scale: 0.8,
+                duration: 0.8,
+                ease: 'power4.inOut',
+                onComplete: () => {
+                    loadingScreen.remove();
+                    initializeMainAnimations();
+                }
+            });
+        } else {
+            // Fallback for browsers without GSAP
+            loadingScreen.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transform = 'scale(0.8)';
+            setTimeout(() => {
                 loadingScreen.remove();
                 initializeMainAnimations();
-            }
-        });
-    }, 2000);
+            }, 800);
+        }
+    };
+    
+    // Shorter loading time, but ensure scripts are loaded
+    const loadingTimeout = setTimeout(() => {
+        if (checkScriptsLoaded()) {
+            removeLoadingScreen();
+        } else {
+            // Wait a bit more for scripts to load
+            setTimeout(removeLoadingScreen, 500);
+        }
+    }, 1200);
 };
 
 // Enhanced Scroll Progress Indicator
@@ -488,22 +572,48 @@ document.addEventListener('mousemove', (e) => {
     mouseY = e.clientY - window.innerHeight / 2;
 });
 
-// Resize handler for Three.js
+// Resize handler for Three.js with safety checks
 window.addEventListener('resize', () => {
-    if (camera && renderer) {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    try {
+        if (camera && renderer && typeof THREE !== 'undefined') {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    } catch (error) {
+        console.warn('Resize handler error:', error);
     }
 });
 
+// Firefox-specific scroll fixes
+const fixFirefoxScrolling = () => {
+    // Prevent infinite scrolling in Firefox
+    document.documentElement.style.height = 'auto';
+    document.body.style.height = 'auto';
+    document.body.style.minHeight = '100vh';
+    
+    // Fix for Firefox smooth scrolling
+    if (navigator.userAgent.includes('Firefox')) {
+        document.documentElement.style.scrollBehavior = 'auto';
+        gsap.config({ force3D: false });
+    }
+};
+
 // Initialize everything when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Apply Firefox fixes first
+    fixFirefoxScrolling();
+    
     createLoadingScreen();
     createScrollProgress();
     createMatrixRain();
     createDynamicBackground();
-    initThreeJS();
+    
+    // Initialize Three.js with delay to ensure DOM is ready
+    setTimeout(() => {
+        initThreeJS();
+    }, 100);
+    
     initParallax();
     
     // Terminal typing animation for about section
